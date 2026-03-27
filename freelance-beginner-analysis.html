@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>初心者向けフリーランス案件分析 & ココナラ出品プラン</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #7c3aed;
+      --accent: #0891b2;
+      --success: #16a34a;
+      --warning: #d97706;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+      color: white;
+      padding: 48px 24px;
+      text-align: center;
+    }
+    header h1 { font-size: 2rem; margin-bottom: 8px; }
+    header p { font-size: 1rem; opacity: 0.85; }
+    .badge-row {
+      display: flex; justify-content: center; gap: 12px;
+      flex-wrap: wrap; margin-top: 20px;
+    }
+    .badge {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 0.8rem;
+    }
+
+    /* ===== LAYOUT ===== */
+    .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+    section { margin-bottom: 56px; }
+    section > h2 {
+      font-size: 1.5rem;
+      margin-bottom: 24px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--primary);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .platform-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 8px;
+      font-size: 1rem; color: white; font-weight: bold; flex-shrink: 0;
+    }
+
+    /* ===== CARDS ===== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      transition: box-shadow 0.2s;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .card h3 { font-size: 1rem; margin-bottom: 8px; }
+    .card p { font-size: 0.875rem; color: var(--muted); margin-bottom: 12px; }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag {
+      background: #eff6ff; color: #1d4ed8;
+      border-radius: 4px; padding: 2px 8px; font-size: 0.75rem;
+    }
+    .tag.green  { background: #f0fdf4; color: #15803d; }
+    .tag.purple { background: #faf5ff; color: #6d28d9; }
+    .tag.orange { background: #fff7ed; color: #c2410c; }
+
+    /* ===== PRICE BADGE ===== */
+    .price-badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #059669, #0891b2);
+      color: white; border-radius: 6px;
+      padding: 2px 10px; font-size: 0.8rem; font-weight: 600;
+    }
+
+    /* ===== DIFFICULTY ===== */
+    .difficulty {
+      display: flex; gap: 4px; margin: 8px 0;
+    }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--border);
+    }
+    .dot.filled { background: #f59e0b; }
+
+    /* ===== PLATFORM SUMMARY TABLE ===== */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse;
+      background: var(--card);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    th {
+      background: #1e3a8a; color: white;
+      padding: 12px 16px; text-align: left; font-size: 0.875rem;
+    }
+    td {
+      padding: 12px 16px; font-size: 0.875rem;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    /* ===== COCONALA PLAN ===== */
+    .coconala-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .coconala-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .coconala-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .coconala-card-header {
+      padding: 18px 20px;
+      color: white;
+    }
+    .coconala-card-header h3 { font-size: 1rem; margin-bottom: 4px; }
+    .coconala-card-header .category-tag {
+      font-size: 0.75rem; opacity: 0.85;
+    }
+    .coconala-card-body { padding: 20px; }
+    .coconala-card-body p {
+      font-size: 0.875rem; color: var(--muted); margin-bottom: 14px;
+    }
+    .plan-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 12px;
+      background: var(--bg);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+    .plan-row strong { color: var(--text); }
+    .plan-price { color: var(--success); font-weight: 700; font-size: 0.9rem; }
+
+    .tips-box {
+      background: #fefce8; border: 1px solid #fde047;
+      border-radius: 10px; padding: 14px 18px; margin-top: 14px;
+      font-size: 0.8rem; color: #713f12;
+    }
+    .tips-box strong { display: block; margin-bottom: 4px; }
+
+    /* ===== ROADMAP ===== */
+    .roadmap {
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .roadmap-step {
+      display: flex; gap: 20px; align-items: flex-start;
+    }
+    .step-line {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .step-num {
+      width: 36px; height: 36px;
+      background: var(--primary); color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+    }
+    .step-connector {
+      width: 2px; background: var(--border);
+      flex: 1; min-height: 32px; margin: 4px 0;
+    }
+    .step-content {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px;
+      margin-bottom: 12px; flex: 1;
+    }
+    .step-content h4 { font-size: 0.95rem; margin-bottom: 6px; }
+    .step-content p { font-size: 0.85rem; color: var(--muted); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: #1e293b; color: #94a3b8;
+      text-align: center; padding: 24px;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.4rem; }
+      .card-grid, .coconala-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>初心者向けフリーランス案件分析</h1>
+  <p>AnotherWorks / CrowdWorks / ココナラ — 2026年3月 調査レポート</p>
+  <div class="badge-row">
+    <span class="badge">AnotherWorks</span>
+    <span class="badge">CrowdWorks</span>
+    <span class="badge">ココナラ</span>
+    <span class="badge">初心者OK案件</span>
+    <span class="badge">ココナラ出品プラン付き</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ===== 1. プラットフォーム比較 ===== -->
+  <section>
+    <h2>
+      <span class="platform-icon" style="background:#1e3a8a;">比</span>
+      プラットフォーム比較
+    </h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>AnotherWorks</th>
+            <th>CrowdWorks</th>
+            <th>ココナラ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>特徴</strong></td>
+            <td>副業・複業特化。スキルマッチ型</td>
+            <td>国内最大級クラウドソーシング</td>
+            <td>スキルマーケット。固定価格出品</td>
+          </tr>
+          <tr>
+            <td><strong>主な形式</strong></td>
+            <td>継続契約・プロジェクト型</td>
+            <td>コンペ・タスク・プロジェクト</td>
+            <td>出品サービスを購入者が選ぶ</td>
+          </tr>
+          <tr>
+            <td><strong>初心者向け案件</strong></td>
+            <td>副業入門・スキル不問あり</td>
+            <td>タスク形式が豊富・初心者OK多数</td>
+            <td>自分でサービス設計できる</td>
+          </tr>
+          <tr>
+            <td><strong>報酬相場（初心者）</strong></td>
+            <td>月2万〜10万円</td>
+            <td>500円〜5万円/件</td>
+            <td>500円〜3万円/件</td>
+          </tr>
+          <tr>
+            <td><strong>手数料</strong></td>
+            <td>無料プランあり</td>
+            <td>受注金額の5〜20%</td>
+            <td>売上の22%（手数料込）</td>
+          </tr>
+          <tr>
+            <td><strong>おすすめタイプ</strong></td>
+            <td>継続案件を探したい人</td>
+            <td>小さく始めてスキルを積みたい人</td>
+            <td>自分のペースで受注したい人</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== 2. AnotherWorks ===== -->
+  <section>
+    <h2>
+      <span class="platform-icon" style="background:#0ea5e9;">AW</span>
+      AnotherWorks — 初心者向け案件カテゴリ
+    </h2>
+    <div class="card-grid">
+
+      <div class="card">
+        <h3>SNS運用・投稿代行</h3>
+        <p>Instagram・X（Twitter）の投稿作成、スケジュール管理。スマホのみでも可能。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">月3万〜8万円</span>
+        <div class="tag-row">
+          <span class="tag green">初心者OK</span>
+          <span class="tag">SNS</span>
+          <span class="tag">継続案件</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>データ入力・リサーチ</h3>
+        <p>Excel・スプレッドシートへのデータ転記、Web上の情報収集・まとめ作業。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">月2万〜5万円</span>
+        <div class="tag-row">
+          <span class="tag green">初心者OK</span>
+          <span class="tag">PC作業</span>
+          <span class="tag">スキル不問</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>ライティング・ブログ記事</h3>
+        <p>指定テーマで記事を執筆。SEOの基礎知識があると高単価。1記事から受注可能。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">月3万〜15万円</span>
+        <div class="tag-row">
+          <span class="tag green">初心者OK</span>
+          <span class="tag">ライティング</span>
+          <span class="tag">SEO</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>動画編集（簡易）</h3>
+        <p>CapCut・DaVinci Resolveで字幕入れ・カット編集。YouTubeショート向け多数。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">月5万〜20万円</span>
+        <div class="tag-row">
+          <span class="tag purple">需要急増</span>
+          <span class="tag">動画</span>
+          <span class="tag">ショート</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Webサイト更新・修正</h3>
+        <p>WordPressの記事投稿、画像差し替え、簡単なテキスト修正。HTMLの基礎があればOK。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">月2万〜10万円</span>
+        <div class="tag-row">
+          <span class="tag green">初心者OK</span>
+          <span class="tag">WordPress</span>
+          <span class="tag">Web</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>カスタマーサポート（チャット）</h3>
+        <p>ECサイトや自社サービスのチャット対応。丁寧な文章力があれば未経験から可。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">時給1,000〜1,500円</span>
+        <div class="tag-row">
+          <span class="tag green">初心者OK</span>
+          <span class="tag">CS</span>
+          <span class="tag">在宅</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== 3. CrowdWorks ===== -->
+  <section>
+    <h2>
+      <span class="platform-icon" style="background:#059669;">CW</span>
+      CrowdWorks — 初心者向け案件カテゴリ
+    </h2>
+    <div class="card-grid">
+
+      <div class="card">
+        <h3>アンケート・モニター</h3>
+        <p>商品・サービスの感想を回答するタスク形式。1件数十〜数百円、スキル不要。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">50〜500円/件</span>
+        <div class="tag-row">
+          <span class="tag green">超初心者向け</span>
+          <span class="tag">タスク</span>
+          <span class="tag">隙間時間</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>テキスト入力・文字起こし</h3>
+        <p>音声・動画の内容をテキスト化。聞き取り力と正確なタイピングが求められる。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">1,000〜5,000円/件</span>
+        <div class="tag-row">
+          <span class="tag green">初心者OK</span>
+          <span class="tag">文字起こし</span>
+          <span class="tag">在宅</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Webライティング（SEO記事）</h3>
+        <p>キーワード指定の記事執筆。1000〜3000文字が中心。文字単価0.5〜1円が初心者相場。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">1,000〜10,000円/本</span>
+        <div class="tag-row">
+          <span class="tag green">初心者OK</span>
+          <span class="tag">SEO</span>
+          <span class="tag">ライティング</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>ロゴ・バナー制作（コンペ）</h3>
+        <p>コンペ形式で提案し採用されれば報酬。採用率は低いが経験積みに最適。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">5,000〜50,000円/採用</span>
+        <div class="tag-row">
+          <span class="tag orange">コンペ形式</span>
+          <span class="tag purple">デザイン</span>
+          <span class="tag">ポートフォリオ</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>翻訳（日英・英日）</h3>
+        <p>短文〜1ページ程度の翻訳。TOEIC700点以上が目安。DeepL補助も一般的。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">2,000〜15,000円/件</span>
+        <div class="tag-row">
+          <span class="tag">翻訳</span>
+          <span class="tag">英語</span>
+          <span class="tag green">初心者OK</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>画像・動画の加工・編集</h3>
+        <p>商品画像の背景削除・リサイズ、動画字幕追加など。ツール操作が主な作業。</p>
+        <div class="difficulty">
+          <span class="dot filled"></span><span class="dot filled"></span>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <span class="price-badge">500〜3,000円/件</span>
+        <div class="tag-row">
+          <span class="tag green">初心者OK</span>
+          <span class="tag">画像加工</span>
+          <span class="tag">Photoshop</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== 4. ココナラ出品プラン ===== -->
+  <section>
+    <h2>
+      <span class="platform-icon" style="background:#7c3aed;">Co</span>
+      ココナラ — 出品サービスプラン（初心者におすすめ）
+    </h2>
+    <p style="color:var(--muted); margin-bottom: 28px; font-size:0.9rem;">
+      ※ ококонала は「スキルを出品して購入者を待つ」マーケットです。自分の得意なことをサービス化しましょう。
+    </p>
+    <div class="coconala-grid">
+
+      <!-- SNS運用 -->
+      <div class="coconala-card">
+        <div class="coconala-card-header" style="background: linear-gradient(135deg, #0ea5e9, #6366f1);">
+          <div class="category-tag">SNS・マーケティング</div>
+          <h3>SNS投稿文・ハッシュタグ作成サービス</h3>
+        </div>
+        <div class="coconala-card-body">
+          <p>InstagramやX(Twitter)の投稿文をターゲットに合わせて作成。ハッシュタグ選定もセットで提供。</p>
+          <div class="plan-row">
+            <span><strong>ライト</strong> 投稿文5件</span>
+            <span class="plan-price">¥3,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>スタンダード</strong> 投稿文10件＋ハッシュタグ</span>
+            <span class="plan-price">¥5,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>プレミアム</strong> 月30件＋分析レポート</span>
+            <span class="plan-price">¥15,000</span>
+          </div>
+          <div class="tips-box">
+            <strong>出品のコツ</strong>
+            自分のSNSアカウントのスクリーンショットをポートフォリオ代わりに掲載しましょう。
+          </div>
+        </div>
+      </div>
+
+      <!-- 動画編集 -->
+      <div class="coconala-card">
+        <div class="coconala-card-header" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+          <div class="category-tag">動画・映像</div>
+          <h3>YouTubeショート・リール動画編集</h3>
+        </div>
+        <div class="coconala-card-body">
+          <p>縦型ショート動画の字幕入れ・カット・BGM追加。CapCutやDaVinci Resolveで対応。</p>
+          <div class="plan-row">
+            <span><strong>ライト</strong> 1分以内・字幕なし</span>
+            <span class="plan-price">¥3,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>スタンダード</strong> 3分以内・字幕あり</span>
+            <span class="plan-price">¥7,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>プレミアム</strong> 5分以内・SE・テロップ付き</span>
+            <span class="plan-price">¥15,000</span>
+          </div>
+          <div class="tips-box">
+            <strong>出品のコツ</strong>
+            編集サンプル動画を必ず掲載。自作でもOKなのでデモ作品を用意しましょう。
+          </div>
+        </div>
+      </div>
+
+      <!-- ライティング -->
+      <div class="coconala-card">
+        <div class="coconala-card-header" style="background: linear-gradient(135deg, #059669, #0891b2);">
+          <div class="category-tag">ライティング・文章</div>
+          <h3>SEO記事・ブログ記事ライティング</h3>
+        </div>
+        <div class="coconala-card-body">
+          <p>指定キーワードでSEOを意識した読みやすい記事を執筆。構成案から納品まで対応。</p>
+          <div class="plan-row">
+            <span><strong>ライト</strong> 1,000字・構成なし</span>
+            <span class="plan-price">¥2,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>スタンダード</strong> 2,000字・構成付き</span>
+            <span class="plan-price">¥5,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>プレミアム</strong> 4,000字・リライト1回込み</span>
+            <span class="plan-price">¥10,000</span>
+          </div>
+          <div class="tips-box">
+            <strong>出品のコツ</strong>
+            得意ジャンルを明記（美容・IT・育児など）。専門性のアピールで差別化できます。
+          </div>
+        </div>
+      </div>
+
+      <!-- データ入力 -->
+      <div class="coconala-card">
+        <div class="coconala-card-header" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+          <div class="category-tag">事務・データ入力</div>
+          <h3>データ入力・リスト作成代行</h3>
+        </div>
+        <div class="coconala-card-body">
+          <p>ExcelやGoogleスプレッドシートへのデータ転記、企業リスト・商品リスト作成を代行。</p>
+          <div class="plan-row">
+            <span><strong>ライト</strong> 100件まで</span>
+            <span class="plan-price">¥3,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>スタンダード</strong> 500件まで</span>
+            <span class="plan-price">¥8,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>プレミアム</strong> 1,000件＋整形・重複削除</span>
+            <span class="plan-price">¥15,000</span>
+          </div>
+          <div class="tips-box">
+            <strong>出品のコツ</strong>
+            納品形式（Excel/CSV/Googleスプレッドシート）と納期目安を明記すると問い合わせが増えます。
+          </div>
+        </div>
+      </div>
+
+      <!-- 文字起こし -->
+      <div class="coconala-card">
+        <div class="coconala-card-header" style="background: linear-gradient(135deg, #0891b2, #059669);">
+          <div class="category-tag">翻訳・文字起こし</div>
+          <h3>音声・動画の文字起こしサービス</h3>
+        </div>
+        <div class="coconala-card-body">
+          <p>会議録音・インタビュー・YouTubeの文字起こし。Notta等ツール活用で高品質・迅速対応。</p>
+          <div class="plan-row">
+            <span><strong>ライト</strong> 15分以内</span>
+            <span class="plan-price">¥2,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>スタンダード</strong> 30分以内・話者分け</span>
+            <span class="plan-price">¥5,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>プレミアム</strong> 60分以内・議事録形式</span>
+            <span class="plan-price">¥10,000</span>
+          </div>
+          <div class="tips-box">
+            <strong>出品のコツ</strong>
+            「医療・法律・IT専門用語対応可」などの専門領域を記載すると高単価受注につながります。
+          </div>
+        </div>
+      </div>
+
+      <!-- AI画像生成 -->
+      <div class="coconala-card">
+        <div class="coconala-card-header" style="background: linear-gradient(135deg, #db2777, #7c3aed);">
+          <div class="category-tag">イラスト・AIアート</div>
+          <h3>AI画像生成・アイコン・バナー制作</h3>
+        </div>
+        <div class="coconala-card-body">
+          <p>Midjourney・DALL-E・Stable Diffusionを活用したアイコン、バナー、サムネイル画像制作。</p>
+          <div class="plan-row">
+            <span><strong>ライト</strong> アイコン1点・修正1回</span>
+            <span class="plan-price">¥1,500</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>スタンダード</strong> バナー2点・修正2回</span>
+            <span class="plan-price">¥5,000</span>
+          </div>
+          <div class="plan-row">
+            <span><strong>プレミアム</strong> 5点セット・商用利用OK</span>
+            <span class="plan-price">¥10,000</span>
+          </div>
+          <div class="tips-box">
+            <strong>出品のコツ</strong>
+            生成サンプルをギャラリーに多数掲載。スタイル（リアル/アニメ/水彩など）を明示しましょう。
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== 5. 初心者向けロードマップ ===== -->
+  <section>
+    <h2>
+      <span class="platform-icon" style="background:#f59e0b;">道</span>
+      初心者フリーランス ステップアップロードマップ
+    </h2>
+    <div class="roadmap">
+
+      <div class="roadmap-step">
+        <div class="step-line">
+          <div class="step-num">1</div>
+          <div class="step-connector"></div>
+        </div>
+        <div class="step-content">
+          <h4>スキル棚卸し & プラットフォーム登録（1週間）</h4>
+          <p>得意なこと・経験を書き出す。AnotherWorks・CrowdWorks・ココナラの3つに無料登録し、プロフィールを整備する。</p>
+        </div>
+      </div>
+
+      <div class="roadmap-step">
+        <div class="step-line">
+          <div class="step-num">2</div>
+          <div class="step-connector"></div>
+        </div>
+        <div class="step-content">
+          <h4>小さな案件で実績づくり（1〜2ヶ月）</h4>
+          <p>CrowdWorksのタスク形式（アンケート・データ入力）で10〜20件こなし、評価★5を集める。ポートフォリオ用サンプルも作成。</p>
+        </div>
+      </div>
+
+      <div class="roadmap-step">
+        <div class="step-line">
+          <div class="step-num">3</div>
+          <div class="step-connector"></div>
+        </div>
+        <div class="step-content">
+          <h4>ココナラに出品 & AnotherWorksで応募（2〜3ヶ月目）</h4>
+          <p>ポートフォリオが揃ったらココナラに出品サービスを作成。AnotherWorksでは副業月2〜5万円規模の案件に応募開始。</p>
+        </div>
+      </div>
+
+      <div class="roadmap-step">
+        <div class="step-line">
+          <div class="step-num">4</div>
+          <div class="step-connector"></div>
+        </div>
+        <div class="step-content">
+          <h4>単価アップ & 専門化（4〜6ヶ月目）</h4>
+          <p>実績が5件以上になったら料金を1.5〜2倍に改定。特定ジャンルに特化してリピーター・指名受注を狙う。</p>
+        </div>
+      </div>
+
+      <div class="roadmap-step">
+        <div class="step-line">
+          <div class="step-num">5</div>
+          <div class="step-connector"></div>
+        </div>
+        <div class="step-content">
+          <h4>月10万円超 & フリーランス本格化（半年〜）</h4>
+          <p>継続契約・リピーターで安定収入を確保。得意領域でSNS発信も行い、プラットフォーム外からの直接依頼も増やす。</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>このレポートは公開情報・各プラットフォームの一般的な傾向をもとに作成した参考資料です。</p>
+  <p style="margin-top:6px;">報酬・手数料は変動する場合があります。必ず各サービスの公式情報をご確認ください。</p>
+  <p style="margin-top:12px; color: #475569;">Generated: 2026-03-27</p>
+</footer>
+
+</body>
+</html>

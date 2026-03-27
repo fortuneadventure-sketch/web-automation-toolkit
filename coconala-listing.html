@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ココナラ出品申請シート — データ入力・リサーチ</title>
+  <style>
+    :root {
+      --coconala: #e85c9b;
+      --coconala-dark: #c23d7d;
+      --coconala-light: #fdf2f7;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --yellow: #d97706;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --card: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.75;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, #c23d7d 0%, #f472b6 100%);
+      color: white; padding: 44px 24px; text-align: center;
+    }
+    header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+    header p { font-size: 0.9rem; opacity: 0.9; }
+    .status-row {
+      display: flex; justify-content: center; gap: 16px;
+      flex-wrap: wrap; margin-top: 20px;
+    }
+    .status-chip {
+      background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 20px; padding: 4px 14px; font-size: 0.78rem;
+    }
+
+    /* CONTAINER */
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+
+    /* SECTION */
+    section { margin-bottom: 48px; }
+    .section-title {
+      font-size: 1.2rem; font-weight: 700;
+      padding: 10px 16px;
+      background: var(--coconala-light);
+      border-left: 4px solid var(--coconala);
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-num {
+      background: var(--coconala); color: white;
+      width: 26px; height: 26px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+    }
+
+    /* COPY BOX */
+    .copy-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .copy-box-header {
+      background: #f1f5f9;
+      padding: 10px 16px;
+      font-size: 0.78rem; color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .copy-label {
+      background: var(--coconala); color: white;
+      border-radius: 4px; padding: 2px 8px; font-size: 0.72rem;
+    }
+    .copy-content {
+      padding: 20px 24px;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      line-height: 1.85;
+    }
+
+    /* PLAN TABLE */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .plan-card {
+      border: 2px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      background: var(--card);
+    }
+    .plan-card.recommended { border-color: var(--coconala); }
+    .plan-header {
+      padding: 14px 16px; text-align: center;
+      background: #f8fafc;
+    }
+    .plan-card.recommended .plan-header {
+      background: var(--coconala); color: white;
+    }
+    .plan-name { font-weight: 700; font-size: 1rem; }
+    .plan-price {
+      font-size: 1.6rem; font-weight: 800;
+      margin: 4px 0;
+    }
+    .plan-price span { font-size: 0.85rem; font-weight: 400; }
+    .plan-body { padding: 16px; }
+    .plan-feature {
+      font-size: 0.82rem; padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex; gap: 8px;
+    }
+    .plan-feature:last-child { border-bottom: none; }
+    .check { color: var(--green); font-weight: 700; }
+    .cross { color: #cbd5e1; }
+    .rec-badge {
+      display: inline-block;
+      background: #fef3c7; color: #92400e;
+      border-radius: 4px; padding: 2px 8px; font-size: 0.7rem;
+      margin-top: 4px;
+    }
+
+    /* TIPS */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .tip-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px;
+    }
+    .tip-card h4 {
+      font-size: 0.9rem; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tip-icon {
+      background: var(--coconala-light); color: var(--coconala);
+      width: 28px; height: 28px; border-radius: 6px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; flex-shrink: 0;
+    }
+    .tip-card p { font-size: 0.82rem; color: var(--muted); }
+
+    /* WARNING */
+    .warn-box {
+      background: #fff7ed; border: 1px solid #fed7aa;
+      border-radius: 10px; padding: 16px 20px;
+      font-size: 0.85rem; color: #7c2d12; margin-top: 12px;
+    }
+    .warn-box strong { display: block; margin-bottom: 4px; color: #c2410c; }
+
+    /* CHECKLIST */
+    .checklist { list-style: none; }
+    .checklist li {
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.875rem; display: flex; align-items: flex-start; gap: 10px;
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist li::before {
+      content: "□"; font-size: 1rem; color: var(--coconala);
+      flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* FAQ */
+    .faq-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .faq-q { font-weight: 700; font-size: 0.9rem; margin-bottom: 6px; color: var(--coconala); }
+    .faq-a { font-size: 0.85rem; color: var(--muted); }
+
+    /* FOOTER */
+    footer {
+      background: #1e293b; color: #94a3b8;
+      text-align: center; padding: 24px;
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 640px) {
+      .plan-grid { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>ココナラ 出品申請シート</h1>
+  <p>データ入力・リサーチ代行 — コピペ即使用可</p>
+  <div class="status-row">
+    <span class="status-chip">スキルレベル：少し経験あり</span>
+    <span class="status-chip">ポートフォリオ：なし → 対策済み</span>
+    <span class="status-chip">カテゴリ：データ入力・リサーチ</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ===== 1. サービスタイトル ===== -->
+  <section>
+    <div class="section-title">
+      <span class="section-num">1</span> サービスタイトル（3案）
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+      ※ ココナラのタイトルは <strong>40字以内</strong>。キーワードを前半に入れると検索に有利です。
+    </p>
+
+    <div class="copy-box" style="margin-bottom:12px;">
+      <div class="copy-box-header">
+        <span>案A — 実績・丁寧さを押し出す（おすすめ）</span>
+        <span class="copy-label">コピー用</span>
+      </div>
+      <div class="copy-content">丁寧・迅速！Excelデータ入力・企業リスト作成を代行します</div>
+    </div>
+
+    <div class="copy-box" style="margin-bottom:12px;">
+      <div class="copy-box-header">
+        <span>案B — スピードを強調</span>
+        <span class="copy-label">コピー用</span>
+      </div>
+      <div class="copy-content">最短即日対応！データ入力・Webリサーチ・名簿作成を承ります</div>
+    </div>
+
+    <div class="copy-box">
+      <div class="copy-box-header">
+        <span>案C — 柔軟さを強調</span>
+        <span class="copy-label">コピー用</span>
+      </div>
+      <div class="copy-content">何でも対応！データ入力・情報収集・スプレッドシート整理代行</div>
+    </div>
+  </section>
+
+  <!-- ===== 2. サービス説明文 ===== -->
+  <section>
+    <div class="section-title">
+      <span class="section-num">2</span> サービス説明文（本文）
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+      ※ 以下をそのままコピーして使用できます。【　】内は自分の情報に書き換えてください。
+    </p>
+
+    <div class="copy-box">
+      <div class="copy-box-header">
+        <span>説明文（全文）— 約400字</span>
+        <span class="copy-label">コピー用</span>
+      </div>
+      <div class="copy-content">■ こんなお悩みはありませんか？
+
+・Excelへのデータ入力が面倒で後回しになっている
+・競合調査や企業リストを作りたいが時間がない
+・Googleスプレッドシートの整理を任せたい
+
+そのお悩み、すべてお任せください！
+
+■ 対応できる作業
+
+・ExcelやGoogleスプレッドシートへのデータ転記・入力
+・Webサイト・SNSからの企業情報・商品情報収集
+・名簿リスト・競合リスト作成
+・重複削除・表記ゆれ修正・データ整形
+・指定フォーマットへの貼り付け作業
+
+■ 納品形式
+
+Excel（.xlsx）/ CSV / Googleスプレッドシート共有リンク
+※ご要望に合わせて対応いたします
+
+■ 大切にしていること
+
+正確さと丁寧なコミュニケーションを最優先にしています。
+作業内容に不明点があれば必ず事前に確認してから進めますので、
+認識のズレがなく安心してお任せいただけます。
+
+まずはお気軽にメッセージください！
+小さなご依頼も大歓迎です。</div>
+    </div>
+  </section>
+
+  <!-- ===== 3. 料金プラン ===== -->
+  <section>
+    <div class="section-title">
+      <span class="section-num">3</span> 料金プラン設計
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+      ※ 初期は低単価で実績を積み、評価が5件以上ついたら値上げするのが定石です。
+    </p>
+
+    <div class="plan-grid">
+
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-name">ライト</div>
+          <div class="plan-price">¥3,000<span>/件</span></div>
+          <div style="font-size:0.75rem; color:var(--muted);">入門・お試し向け</div>
+        </div>
+        <div class="plan-body">
+          <div class="plan-feature"><span class="check">✓</span> データ入力 100件まで</div>
+          <div class="plan-feature"><span class="check">✓</span> Excel or CSV納品</div>
+          <div class="plan-feature"><span class="check">✓</span> 納期3日</div>
+          <div class="plan-feature"><span class="check">✓</span> 修正1回</div>
+          <div class="plan-feature"><span class="cross">—</span> 重複削除・整形</div>
+          <div class="plan-feature"><span class="cross">—</span> リサーチ作業</div>
+        </div>
+      </div>
+
+      <div class="plan-card recommended">
+        <div class="plan-header">
+          <div class="plan-name">スタンダード</div>
+          <div class="plan-price">¥8,000<span>/件</span></div>
+          <div class="rec-badge">いちばん人気</div>
+        </div>
+        <div class="plan-body">
+          <div class="plan-feature"><span class="check">✓</span> データ入力 500件まで</div>
+          <div class="plan-feature"><span class="check">✓</span> Excel / CSV / スプレッドシート</div>
+          <div class="plan-feature"><span class="check">✓</span> 納期5日</div>
+          <div class="plan-feature"><span class="check">✓</span> 修正2回</div>
+          <div class="plan-feature"><span class="check">✓</span> 重複削除・整形込み</div>
+          <div class="plan-feature"><span class="cross">—</span> リサーチ作業</div>
+        </div>
+      </div>
+
+      <div class="plan-card">
+        <div class="plan-header">
+          <div class="plan-name">プレミアム</div>
+          <div class="plan-price">¥15,000<span>/件</span></div>
+          <div style="font-size:0.75rem; color:var(--muted);">まとめてお任せ</div>
+        </div>
+        <div class="plan-body">
+          <div class="plan-feature"><span class="check">✓</span> データ入力 1,000件まで</div>
+          <div class="plan-feature"><span class="check">✓</span> 全形式対応</div>
+          <div class="plan-feature"><span class="check">✓</span> 納期7日</div>
+          <div class="plan-feature"><span class="check">✓</span> 修正3回</div>
+          <div class="plan-feature"><span class="check">✓</span> 重複削除・整形込み</div>
+          <div class="plan-feature"><span class="check">✓</span> Webリサーチ込み</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="warn-box" style="margin-top:20px;">
+      <strong>初月の値付け戦略</strong>
+      初めの3〜5件はライト¥3,000で受注して★5評価を集めることを優先。
+      評価が5件超えたらスタンダード¥8,000を軸にしてプレミアムを追加するのがおすすめです。
+    </div>
+  </section>
+
+  <!-- ===== 4. 自己紹介文 ===== -->
+  <section>
+    <div class="section-title">
+      <span class="section-num">4</span> 出品者プロフィール文
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+      ※ ポートフォリオなし・初心者でも信頼を得やすい書き方にしています。
+    </p>
+
+    <div class="copy-box">
+      <div class="copy-box-header">
+        <span>プロフィール文（全文）</span>
+        <span class="copy-label">コピー用</span>
+      </div>
+      <div class="copy-content">はじめまして！【お名前またはニックネーム】と申します。
+
+普段は【会社員 / 主婦 / 学生 など】として働きながら、
+スキルを活かして副業でサポートできることを探してこちらに登録しました。
+
+PC作業・データ整理が得意で、ExcelやGoogleスプレッドシートを日常的に使っています。
+正確さと丁寧なコミュニケーションを大切に、ご満足いただけるよう全力で取り組みます。
+
+▼ 使用ツール
+・Excel（基本関数〜VLOOKUP程度）
+・Googleスプレッドシート
+・Googleフォーム / ドキュメント
+
+▼ 得意な作業
+・データ転記・入力・整形
+・Web上の情報収集・リスト化
+・表記ゆれ修正・重複削除
+
+初めてのご依頼でも丁寧に対応いたします。
+まずはお気軽にメッセージをください！</div>
+    </div>
+  </section>
+
+  <!-- ===== 5. よくある質問（FAQ） ===== -->
+  <section>
+    <div class="section-title">
+      <span class="section-num">5</span> よくある質問（FAQ）設定例
+    </div>
+    <p style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+      ※ ページ内にFAQを書いておくと問い合わせが減り、購入率が上がります。
+    </p>
+
+    <div class="faq-item">
+      <div class="faq-q">Q. 納品前に途中経過を確認できますか？</div>
+      <div class="faq-a">はい、ご希望の場合は中間報告をお送りします。お気軽にお申し付けください。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Q. 件数が多い場合は対応できますか？</div>
+      <div class="faq-a">プレミアムプランの件数を超える場合も追加オプションで対応可能です。購入前にメッセージでご相談ください。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Q. 個人情報が含まれるデータでも大丈夫ですか？</div>
+      <div class="faq-a">ご依頼内容は厳重に管理し、第三者への提供は一切行いません。安心してお任せください。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Q. 修正回数を超えた場合はどうなりますか？</div>
+      <div class="faq-a">追加修正は1回あたり¥1,000〜でご対応いたします。事前にご相談いただければ柔軟に対応します。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Q. 急ぎの対応は可能ですか？</div>
+      <div class="faq-a">翌日〜即日対応の特急オプション（+¥1,500）をご用意しています。ご購入前にご連絡ください。</div>
+    </div>
+  </section>
+
+  <!-- ===== 6. ポートフォリオなしの対策 ===== -->
+  <section>
+    <div class="section-title">
+      <span class="section-num">6</span> ポートフォリオなし → 信頼を作る5つの対策
+    </div>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <h4><span class="tip-icon">🖼</span> ダミーサンプルを作る</h4>
+        <p>架空の企業リストや商品データをExcelで作成してスクリーンショットを掲載。実案件でなくても「作業イメージ」として有効。</p>
+      </div>
+      <div class="tip-card">
+        <h4><span class="tip-icon">📋</span> 作業フローを画像で見せる</h4>
+        <p>「ご注文 → ヒアリング → 作業 → 納品」の流れをCanvaで図にして掲載するだけで信頼感が上がる。</p>
+      </div>
+      <div class="tip-card">
+        <h4><span class="tip-icon">💬</span> 返信速度を早くする</h4>
+        <p>最初の返信は30分以内を目指す。レスポンスが早いと購入率が大幅に上昇する。通知設定をONに。</p>
+      </div>
+      <div class="tip-card">
+        <h4><span class="tip-icon">🎁</span> 初回特典を明記する</h4>
+        <p>「初めてのご購入限定・修正回数+1回無料」などの特典を入れると初回受注のハードルが下がる。</p>
+      </div>
+      <div class="tip-card">
+        <h4><span class="tip-icon">⭐</span> 最初の3件は赤字覚悟</h4>
+        <p>¥3,000〜¥5,000の低価格で受注して★5評価を3件集める。評価がつけば自然と問い合わせが増える。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 7. 出品前チェックリスト ===== -->
+  <section>
+    <div class="section-title">
+      <span class="section-num">7</span> 出品前チェックリスト
+    </div>
+    <ul class="checklist">
+      <li>サービスタイトルにキーワード（「データ入力」「リサーチ」）が入っている</li>
+      <li>説明文に「対応できる作業」「納品形式」「修正回数」が明記されている</li>
+      <li>3段階の料金プランが設定されている（ライト・スタンダード・プレミアム）</li>
+      <li>プロフィール写真（本人 or アイコン）が設定されている</li>
+      <li>プロフィール文が100字以上書かれている</li>
+      <li>ダミーサンプルまたは作業フロー図が1枚以上アップされている</li>
+      <li>FAQ（よくある質問）が3つ以上設定されている</li>
+      <li>特急オプション（+¥1,500〜）が追加されている</li>
+      <li>通知設定がONになっており、30分以内に返信できる環境が整っている</li>
+      <li>ジャンル・カテゴリが「仕事・ビジネス ＞ データ入力・リスト作成」になっている</li>
+    </ul>
+  </section>
+
+  <!-- ===== 8. 最初の1件を取るための行動計画 ===== -->
+  <section>
+    <div class="section-title">
+      <span class="section-num">8</span> 最初の1件を取る！ 行動計画
+    </div>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+
+      <div style="display:flex; gap:16px; align-items:flex-start;">
+        <div style="background:var(--coconala); color:white; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">1</div>
+        <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; flex:1;">
+          <strong style="font-size:0.9rem;">今日中：出品ページを公開する</strong>
+          <p style="font-size:0.82rem; color:var(--muted); margin-top:4px;">上記の文章をコピペして、ライトプラン¥3,000で出品。完璧を目指さずまず公開することが最優先。</p>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:16px; align-items:flex-start;">
+        <div style="background:var(--coconala); color:white; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">2</div>
+        <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; flex:1;">
+          <strong style="font-size:0.9rem;">3日以内：ダミーサンプルを1枚作る</strong>
+          <p style="font-size:0.82rem; color:var(--muted); margin-top:4px;">Excelで50行程度の架空データを作り、スクリーンショットをサービス画像に追加。見栄えが大きく変わる。</p>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:16px; align-items:flex-start;">
+        <div style="background:var(--coconala); color:white; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">3</div>
+        <div style="background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; flex:1;">
+          <strong style="font-size:0.9rem;">1週間以内：CrowdWorksでも同じサービスを出す</strong>
+          <p style="font-size:0.82rem; color:var(--muted); margin-top:4px;">ココナラと並行してCrowdWorksのプロジェクト案件にも応募し、露出を増やす。実績になった案件はすぐにプロフィールに追加。</p>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:16px; align-items:flex-start;">
+        <div style="background: var(--green); color:white; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">🎯</div>
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px 18px; flex:1;">
+          <strong style="font-size:0.9rem; color:var(--green);">目標：1ヶ月以内に★5評価3件・月1万円達成</strong>
+          <p style="font-size:0.82rem; color:#15803d; margin-top:4px;">3件の評価がつけばプロフィールの信頼度が一気に上がり、自然流入からの問い合わせが来るようになります。</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <p>このシートの文章はコピー・改変してご自由にお使いください。</p>
+  <p style="margin-top:6px; color:#475569;">Generated: 2026-03-27 | ココナラ出品申請シート v1.0</p>
+</footer>
+
+</body>
+</html>
