@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>テキストツール — web-automation-toolkit</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --success: #16a34a;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: var(--bg); color: var(--text);
+    }
+    header {
+      background: linear-gradient(135deg, #059669 0%, #0891b2 100%);
+      color: white; padding: 28px 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    header a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.85rem; }
+    header a:hover { color: white; }
+    header h1 { font-size: 1.4rem; }
+    header p { font-size: 0.85rem; opacity: 0.8; margin-top: 2px; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
+
+    /* TABS */
+    .tabs {
+      display: flex; gap: 4px; flex-wrap: wrap;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 6px; margin-bottom: 24px;
+    }
+    .tab {
+      padding: 8px 16px; border-radius: 8px; font-size: 0.85rem;
+      cursor: pointer; font-family: inherit; border: none;
+      background: transparent; color: var(--muted); transition: all 0.15s;
+    }
+    .tab.active { background: var(--primary); color: white; }
+    .tab:not(.active):hover { background: var(--bg); color: var(--text); }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* TOOL LAYOUT */
+    .tool-row {
+      display: grid; gap: 16px;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 640px) { .tool-row { grid-template-columns: 1fr; } }
+
+    .pane-label {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em;
+      color: var(--muted); text-transform: uppercase; margin-bottom: 6px;
+    }
+    textarea {
+      width: 100%; min-height: 220px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; font-size: 0.9rem;
+      font-family: 'Courier New', monospace;
+      resize: vertical; outline: none;
+      transition: border-color 0.2s;
+      background: var(--card);
+    }
+    textarea:focus { border-color: var(--primary); }
+
+    /* CONTROLS */
+    .controls {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin: 14px 0;
+    }
+    button {
+      padding: 8px 16px; border-radius: 8px; font-size: 0.82rem;
+      font-family: inherit; cursor: pointer; border: 1.5px solid var(--border);
+      background: var(--card); color: var(--text); transition: all 0.15s;
+    }
+    button:hover { border-color: var(--primary); color: var(--primary); }
+    button.primary {
+      background: var(--primary); color: white; border-color: var(--primary);
+    }
+    button.primary:hover { background: #1d4ed8; }
+    button.success {
+      background: var(--success); color: white; border-color: var(--success);
+    }
+
+    /* STATS */
+    .text-stats {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px; margin-top: 12px;
+    }
+    .stat { display: flex; flex-direction: column; }
+    .stat-val { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+    .stat-lbl { font-size: 0.72rem; color: var(--muted); }
+
+    /* SINGLE PANE */
+    .single-pane textarea { min-height: 300px; }
+
+    /* DIFF */
+    .diff-add { background: #dcfce7; }
+    .diff-del { background: #fee2e2; }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: #1e293b; color: white;
+      padding: 10px 22px; border-radius: 10px; font-size: 0.85rem;
+      transition: transform 0.3s; z-index: 999; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .option-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+    .option-row label { font-size: 0.85rem; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .sep { height: 1px; background: var(--border); margin: 16px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <p><a href="../index.html">← ホームに戻る</a></p>
+    <h1>✏️ テキストツール</h1>
+    <p>文字数カウント・整形・変換・重複削除など</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('counter')">📏 文字数カウント</button>
+    <button class="tab" onclick="switchTab('format')">🔧 テキスト整形</button>
+    <button class="tab" onclick="switchTab('convert')">🔄 全角・半角変換</button>
+    <button class="tab" onclick="switchTab('dedupe')">🗑️ 重複行削除</button>
+    <button class="tab" onclick="switchTab('extract')">🔍 抽出・置換</button>
+  </div>
+
+  <!-- ===== 文字数カウント ===== -->
+  <div id="panel-counter" class="panel active">
+    <div class="single-pane">
+      <p class="pane-label">テキストを入力</p>
+      <textarea id="counterInput" placeholder="ここにテキストを貼り付けてください..." oninput="updateCounter()"></textarea>
+    </div>
+    <div class="text-stats" id="counterStats">
+      <div class="stat"><span class="stat-val" id="charCount">0</span><span class="stat-lbl">文字数（スペース含む）</span></div>
+      <div class="stat"><span class="stat-val" id="charNoSpace">0</span><span class="stat-lbl">文字数（スペース除く）</span></div>
+      <div class="stat"><span class="stat-val" id="lineCount">0</span><span class="stat-lbl">行数</span></div>
+      <div class="stat"><span class="stat-val" id="wordCount">0</span><span class="stat-lbl">単語数（空白区切り）</span></div>
+      <div class="stat"><span class="stat-val" id="byteCount">0</span><span class="stat-lbl">バイト数(UTF-8)</span></div>
+    </div>
+    <div class="controls">
+      <button onclick="clearPane('counterInput'); updateCounter()">クリア</button>
+      <button onclick="copyText('counterInput')">コピー</button>
+    </div>
+  </div>
+
+  <!-- ===== テキスト整形 ===== -->
+  <div id="panel-format" class="panel">
+    <div class="option-row">
+      <button onclick="applyFormat('trim')">前後の空白を削除</button>
+      <button onclick="applyFormat('removeBlank')">空行を削除</button>
+      <button onclick="applyFormat('singleLine')">改行をスペースに変換</button>
+      <button onclick="applyFormat('addBullet')">行頭に「・」追加</button>
+      <button onclick="applyFormat('removeBullet')">行頭記号を削除</button>
+      <button onclick="applyFormat('sort')">行を昇順ソート</button>
+      <button onclick="applyFormat('sortDesc')">行を降順ソート</button>
+      <button onclick="applyFormat('reverse')">行を逆順</button>
+      <button onclick="applyFormat('upperCase')">英字を大文字</button>
+      <button onclick="applyFormat('lowerCase')">英字を小文字</button>
+      <button onclick="applyFormat('numberLines')">行番号を追加</button>
+    </div>
+    <div class="tool-row">
+      <div>
+        <p class="pane-label">入力</p>
+        <textarea id="formatInput" placeholder="整形したいテキストを入力..."></textarea>
+        <div class="controls">
+          <button onclick="clearPane('formatInput')">クリア</button>
+          <button onclick="copyText('formatInput')">コピー</button>
+        </div>
+      </div>
+      <div>
+        <p class="pane-label">出力</p>
+        <textarea id="formatOutput" placeholder="整形結果がここに表示されます" readonly></textarea>
+        <div class="controls">
+          <button class="primary" onclick="copyText('formatOutput')">出力をコピー</button>
+          <button onclick="swapFormatIO()">↑ 入力に移す</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 全角・半角変換 ===== -->
+  <div id="panel-convert" class="panel">
+    <div class="option-row">
+      <button onclick="applyConvert('toHalf')">全角→半角（英数記号）</button>
+      <button onclick="applyConvert('toFull')">半角→全角（英数記号）</button>
+      <button onclick="applyConvert('kataToHira')">カタカナ→ひらがな</button>
+      <button onclick="applyConvert('hiraToKata')">ひらがな→カタカナ</button>
+      <button onclick="applyConvert('halfKataToHira')">半角カナ→ひらがな</button>
+      <button onclick="applyConvert('halfKataToFull')">半角カナ→全角カナ</button>
+    </div>
+    <div class="tool-row">
+      <div>
+        <p class="pane-label">入力</p>
+        <textarea id="convertInput" placeholder="変換したいテキストを入力..."></textarea>
+        <div class="controls">
+          <button onclick="clearPane('convertInput')">クリア</button>
+          <button onclick="copyText('convertInput')">コピー</button>
+        </div>
+      </div>
+      <div>
+        <p class="pane-label">出力</p>
+        <textarea id="convertOutput" placeholder="変換結果がここに表示されます" readonly></textarea>
+        <div class="controls">
+          <button class="primary" onclick="copyText('convertOutput')">出力をコピー</button>
+          <button onclick="swapConvertIO()">↑ 入力に移す</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 重複行削除 ===== -->
+  <div id="panel-dedupe" class="panel">
+    <div class="option-row">
+      <label><input type="checkbox" id="dedupeIgnoreCase"> 大文字・小文字を区別しない</label>
+      <label><input type="checkbox" id="dedupeIgnoreSpace"> 前後の空白を無視</label>
+      <label><input type="checkbox" id="dedupeKeepOrder" checked> 元の順序を維持</label>
+    </div>
+    <div class="tool-row">
+      <div>
+        <p class="pane-label">入力</p>
+        <textarea id="dedupeInput" placeholder="重複を削除したい行リストを入力..."></textarea>
+        <div class="controls">
+          <button onclick="clearPane('dedupeInput')">クリア</button>
+          <button class="primary" onclick="runDedupe()">重複を削除</button>
+        </div>
+      </div>
+      <div>
+        <p class="pane-label">出力</p>
+        <textarea id="dedupeOutput" placeholder="結果がここに表示されます" readonly></textarea>
+        <div class="controls">
+          <button class="primary" onclick="copyText('dedupeOutput')">出力をコピー</button>
+          <span id="dedupeInfo" style="font-size:0.8rem; color:var(--muted);"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 抽出・置換 ===== -->
+  <div id="panel-extract" class="panel">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="option-row" style="margin-bottom:8px;">
+        <span style="font-size:0.85rem; font-weight:600;">検索文字列</span>
+        <input id="searchStr" type="text" placeholder="検索する文字（正規表現も可）"
+          style="flex:1; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+        <label style="font-size:0.82rem;"><input type="checkbox" id="useRegex"> 正規表現</label>
+        <label style="font-size:0.82rem;"><input type="checkbox" id="ignoreCase"> 大文字小文字無視</label>
+      </div>
+      <div class="option-row">
+        <span style="font-size:0.85rem; font-weight:600;">置換文字列</span>
+        <input id="replaceStr" type="text" placeholder="置換後の文字（空欄で削除）"
+          style="flex:1; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:0.85rem; font-family:inherit;">
+        <button onclick="runReplace()">すべて置換</button>
+        <button onclick="runExtractLines()">含む行を抽出</button>
+        <button onclick="runExcludeLines()">含む行を除外</button>
+      </div>
+    </div>
+    <div class="tool-row">
+      <div>
+        <p class="pane-label">入力</p>
+        <textarea id="extractInput" placeholder="処理するテキストを入力..."></textarea>
+        <div class="controls">
+          <button onclick="clearPane('extractInput')">クリア</button>
+        </div>
+      </div>
+      <div>
+        <p class="pane-label">出力</p>
+        <textarea id="extractOutput" placeholder="結果がここに表示されます" readonly></textarea>
+        <div class="controls">
+          <button class="primary" onclick="copyText('extractOutput')">出力をコピー</button>
+          <span id="extractInfo" style="font-size:0.8rem; color:var(--muted);"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">コピーしました</div>
+
+<script>
+// ===== TABS =====
+function switchTab(name) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("panel-" + name).classList.add("active");
+  event.currentTarget.classList.add("active");
+}
+
+// ===== COUNTER =====
+function updateCounter() {
+  const text = document.getElementById("counterInput").value;
+  document.getElementById("charCount").textContent = text.length.toLocaleString();
+  document.getElementById("charNoSpace").textContent = text.replace(/\s/g, "").length.toLocaleString();
+  document.getElementById("lineCount").textContent = (text === "" ? 0 : text.split("\n").length).toLocaleString();
+  document.getElementById("wordCount").textContent = (text.trim() === "" ? 0 : text.trim().split(/\s+/).length).toLocaleString();
+  const bytes = new TextEncoder().encode(text).length;
+  document.getElementById("byteCount").textContent = bytes.toLocaleString();
+}
+
+// ===== FORMAT =====
+function applyFormat(type) {
+  const input = document.getElementById("formatInput").value;
+  let lines = input.split("\n");
+  let result;
+  switch (type) {
+    case "trim":         result = lines.map(l => l.trim()).join("\n"); break;
+    case "removeBlank":  result = lines.filter(l => l.trim() !== "").join("\n"); break;
+    case "singleLine":   result = lines.map(l => l.trim()).filter(l => l).join(" "); break;
+    case "addBullet":    result = lines.map(l => l ? "・" + l : l).join("\n"); break;
+    case "removeBullet": result = lines.map(l => l.replace(/^[・•\-\*＊]+\s*/, "")).join("\n"); break;
+    case "sort":         result = [...lines].sort((a,b) => a.localeCompare(b, "ja")).join("\n"); break;
+    case "sortDesc":     result = [...lines].sort((a,b) => b.localeCompare(a, "ja")).join("\n"); break;
+    case "reverse":      result = [...lines].reverse().join("\n"); break;
+    case "upperCase":    result = input.toUpperCase(); break;
+    case "lowerCase":    result = input.toLowerCase(); break;
+    case "numberLines":  result = lines.map((l,i) => `${i+1}. ${l}`).join("\n"); break;
+    default: result = input;
+  }
+  document.getElementById("formatOutput").value = result;
+}
+function swapFormatIO() {
+  document.getElementById("formatInput").value = document.getElementById("formatOutput").value;
+  document.getElementById("formatOutput").value = "";
+}
+
+// ===== CONVERT =====
+function toHalfWidth(str) {
+  return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+            .replace(/[　]/g, " ")
+            .replace(/[！]/g, "!").replace(/[？]/g, "?")
+            .replace(/[（]/g, "(").replace(/[）]/g, ")")
+            .replace(/[「]/g, "[").replace(/[」]/g, "]")
+            .replace(/[、]/g, ",").replace(/[。]/g, ".")
+            .replace(/[・]/g, "·");
+}
+function toFullWidth(str) {
+  return str.replace(/[A-Za-z0-9]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xFEE0))
+            .replace(/ /g, "　");
+}
+function kataToHira(str) {
+  return str.replace(/[\u30A1-\u30F6]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x60));
+}
+function hiraToKata(str) {
+  return str.replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+}
+function halfKanaMap() {
+  return {
+    "ｦ":"を","ｧ":"ぁ","ｨ":"ぃ","ｩ":"ぅ","ｪ":"ぇ","ｫ":"ぉ","ｬ":"ゃ","ｭ":"ゅ","ｮ":"ょ","ｯ":"っ",
+    "ｰ":"ー","ｱ":"あ","ｲ":"い","ｳ":"う","ｴ":"え","ｵ":"お","ｶ":"か","ｷ":"き","ｸ":"く","ｹ":"け",
+    "ｺ":"こ","ｻ":"さ","ｼ":"し","ｽ":"す","ｾ":"せ","ｿ":"そ","ﾀ":"た","ﾁ":"ち","ﾂ":"つ","ﾃ":"て",
+    "ﾄ":"と","ﾅ":"な","ﾆ":"に","ﾇ":"ぬ","ﾈ":"ね","ﾉ":"の","ﾊ":"は","ﾋ":"ひ","ﾌ":"ふ","ﾍ":"へ",
+    "ﾎ":"ほ","ﾏ":"ま","ﾐ":"み","ﾑ":"む","ﾒ":"め","ﾓ":"も","ﾔ":"や","ﾕ":"ゆ","ﾖ":"よ","ﾗ":"ら",
+    "ﾘ":"り","ﾙ":"る","ﾚ":"れ","ﾛ":"ろ","ﾜ":"わ","ｦ":"を","ﾝ":"ん"
+  };
+}
+function halfKataToHira(str) {
+  const map = halfKanaMap();
+  return str.replace(/[ｦ-ﾝ]/g, c => map[c] || c);
+}
+function halfKataToFull(str) {
+  return hiraToKata(halfKataToHira(str));
+}
+
+function applyConvert(type) {
+  const input = document.getElementById("convertInput").value;
+  let result;
+  switch (type) {
+    case "toHalf":         result = toHalfWidth(input); break;
+    case "toFull":         result = toFullWidth(input); break;
+    case "kataToHira":     result = kataToHira(input); break;
+    case "hiraToKata":     result = hiraToKata(input); break;
+    case "halfKataToHira": result = halfKataToHira(input); break;
+    case "halfKataToFull": result = halfKataToFull(input); break;
+    default: result = input;
+  }
+  document.getElementById("convertOutput").value = result;
+}
+function swapConvertIO() {
+  document.getElementById("convertInput").value = document.getElementById("convertOutput").value;
+  document.getElementById("convertOutput").value = "";
+}
+
+// ===== DEDUPE =====
+function runDedupe() {
+  const input = document.getElementById("dedupeInput").value;
+  const ignoreCase  = document.getElementById("dedupeIgnoreCase").checked;
+  const ignoreSpace = document.getElementById("dedupeIgnoreSpace").checked;
+  let lines = input.split("\n");
+  const before = lines.length;
+  const seen = new Set();
+  const result = lines.filter(line => {
+    let key = ignoreSpace ? line.trim() : line;
+    if (ignoreCase) key = key.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  document.getElementById("dedupeOutput").value = result.join("\n");
+  const removed = before - result.length;
+  document.getElementById("dedupeInfo").textContent =
+    `${before}行 → ${result.length}行（${removed}件削除）`;
+}
+
+// ===== EXTRACT / REPLACE =====
+function getSearchRegex() {
+  const str = document.getElementById("searchStr").value;
+  const useRegex = document.getElementById("useRegex").checked;
+  const ignoreCase = document.getElementById("ignoreCase").checked;
+  if (!str) return null;
+  const flags = "g" + (ignoreCase ? "i" : "");
+  try {
+    return useRegex ? new RegExp(str, flags) : new RegExp(str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), flags);
+  } catch(e) {
+    alert("正規表現エラー: " + e.message);
+    return null;
+  }
+}
+function runReplace() {
+  const regex = getSearchRegex();
+  if (!regex) return;
+  const input = document.getElementById("extractInput").value;
+  const rep = document.getElementById("replaceStr").value;
+  const result = input.replace(regex, rep);
+  document.getElementById("extractOutput").value = result;
+  const matches = (input.match(regex) || []).length;
+  document.getElementById("extractInfo").textContent = `${matches}件置換しました`;
+}
+function runExtractLines() {
+  const regex = getSearchRegex();
+  if (!regex) return;
+  const lines = document.getElementById("extractInput").value.split("\n");
+  const result = lines.filter(l => regex.test(l));
+  document.getElementById("extractOutput").value = result.join("\n");
+  document.getElementById("extractInfo").textContent = `${result.length}行抽出`;
+}
+function runExcludeLines() {
+  const regex = getSearchRegex();
+  if (!regex) return;
+  const lines = document.getElementById("extractInput").value.split("\n");
+  const result = lines.filter(l => !regex.test(l));
+  document.getElementById("extractOutput").value = result.join("\n");
+  document.getElementById("extractInfo").textContent = `${lines.length - result.length}行除外 → ${result.length}行`;
+}
+
+// ===== UTILS =====
+function clearPane(id) { document.getElementById(id).value = ""; }
+function copyText(id) {
+  const text = document.getElementById(id).value;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => showToast("コピーしました")).catch(() => {
+    const ta = document.getElementById(id);
+    ta.select(); document.execCommand("copy"); showToast("コピーしました");
+  });
+}
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
+</script>
+</body>
+</html>

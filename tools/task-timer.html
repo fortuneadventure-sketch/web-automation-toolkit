@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作業タイマー — web-automation-toolkit</title>
+  <style>
+    :root {
+      --work-color: #ef4444;
+      --break-color: #16a34a;
+      --long-break-color: #0891b2;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      padding: 14px 24px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    nav a { color: #64748b; text-decoration: none; font-size: 0.82rem; }
+    nav a:hover { color: var(--text); }
+    nav h2 { font-size: 1rem; font-weight: 600; color: var(--text); }
+
+    /* LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 24px;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+    @media (max-width: 700px) { .layout { grid-template-columns: 1fr; } }
+
+    /* TIMER CARD */
+    .timer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 24px;
+      text-align: center;
+    }
+
+    /* MODE TABS */
+    .mode-tabs {
+      display: inline-flex; gap: 4px;
+      background: #0f172a; border-radius: 10px; padding: 4px;
+      margin-bottom: 28px;
+    }
+    .mode-btn {
+      padding: 6px 14px; border-radius: 7px; font-size: 0.78rem;
+      font-family: inherit; cursor: pointer; border: none;
+      background: transparent; color: var(--muted); transition: all 0.15s;
+    }
+    .mode-btn.active { background: var(--work-color); color: white; font-weight: 700; }
+    .mode-btn.break.active { background: var(--break-color); }
+    .mode-btn.longbreak.active { background: var(--long-break-color); }
+
+    /* RING */
+    .ring-wrap {
+      position: relative; display: inline-block;
+      width: 200px; height: 200px; margin: 0 auto 24px;
+    }
+    .ring-svg { transform: rotate(-90deg); }
+    .ring-bg { fill: none; stroke: #1e293b; stroke-width: 10; }
+    .ring-fg { fill: none; stroke-width: 10; stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+    .ring-time {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.6rem; font-weight: 700; letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* TASK INPUT */
+    .task-input-wrap { margin-bottom: 20px; }
+    .task-input-wrap input {
+      width: 100%; padding: 10px 14px;
+      background: #0f172a; border: 1.5px solid var(--border);
+      border-radius: 10px; color: var(--text);
+      font-size: 0.9rem; font-family: inherit; outline: none;
+      transition: border-color 0.2s;
+    }
+    .task-input-wrap input:focus { border-color: var(--work-color); }
+    .task-input-wrap input::placeholder { color: #475569; }
+
+    /* BUTTONS */
+    .btn-row { display: flex; gap: 10px; justify-content: center; }
+    .btn {
+      padding: 12px 28px; border-radius: 12px; font-size: 0.95rem;
+      font-family: inherit; font-weight: 700; cursor: pointer; border: none;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-start { background: var(--work-color); color: white; min-width: 100px; }
+    .btn-reset { background: var(--border); color: var(--muted); }
+
+    /* SESSION COUNTER */
+    .sessions {
+      display: flex; justify-content: center; gap: 6px; margin-top: 20px;
+    }
+    .session-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--border);
+    }
+    .session-dot.done { background: var(--work-color); }
+
+    /* SIDE */
+    .side-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      height: fit-content;
+    }
+    .side-card h3 {
+      font-size: 0.85rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
+    }
+
+    /* TASK LOG */
+    .log-list { list-style: none; }
+    .log-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .log-dot.work { background: var(--work-color); }
+    .log-dot.break { background: var(--break-color); }
+    .log-time { color: var(--muted); margin-left: auto; white-space: nowrap; font-size: 0.75rem; }
+    .empty-log { color: var(--muted); font-size: 0.82rem; padding: 8px 0; }
+
+    /* STATS */
+    .stats-row { display: flex; gap: 12px; margin-top: 16px; }
+    .stat-box {
+      flex: 1; background: #0f172a; border-radius: 10px;
+      padding: 12px; text-align: center;
+    }
+    .stat-num { font-size: 1.4rem; font-weight: 700; color: var(--work-color); }
+    .stat-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+    /* SETTINGS */
+    .settings-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.82rem;
+    }
+    .setting-row label { color: var(--muted); }
+    .setting-row input[type="number"] {
+      width: 60px; padding: 5px 8px;
+      background: #0f172a; border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text);
+      font-size: 0.82rem; font-family: inherit; text-align: center;
+    }
+
+    /* NOTIFICATION BADGE */
+    .mode-label {
+      font-size: 0.8rem; color: var(--muted); margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html">← ホーム</a>
+  <span style="color:var(--border)">|</span>
+  <h2>⏱️ 作業タイマー（ポモドーロ）</h2>
+</nav>
+
+<div class="layout">
+  <!-- LEFT: TIMER -->
+  <div>
+    <div class="timer-card">
+      <!-- MODE TABS -->
+      <div class="mode-tabs">
+        <button class="mode-btn active" id="btnWork" onclick="setMode('work')">集中</button>
+        <button class="mode-btn break" id="btnBreak" onclick="setMode('break')">短い休憩</button>
+        <button class="mode-btn longbreak" id="btnLong" onclick="setMode('long')">長い休憩</button>
+      </div>
+
+      <p class="mode-label" id="modeLabel">集中時間</p>
+
+      <!-- RING -->
+      <div class="ring-wrap">
+        <svg class="ring-svg" width="200" height="200" viewBox="0 0 200 200">
+          <circle class="ring-bg" cx="100" cy="100" r="90"/>
+          <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="90"
+            stroke="#ef4444"
+            stroke-dasharray="565.49"
+            stroke-dashoffset="0"/>
+        </svg>
+        <div class="ring-time" id="timeDisplay">25:00</div>
+      </div>
+
+      <!-- TASK -->
+      <div class="task-input-wrap">
+        <input type="text" id="taskName" placeholder="今やるタスクを入力してスタート..." maxlength="60">
+      </div>
+
+      <!-- BUTTONS -->
+      <div class="btn-row">
+        <button class="btn btn-start" id="startBtn" onclick="toggleTimer()">▶ スタート</button>
+        <button class="btn btn-reset" onclick="resetTimer()">リセット</button>
+      </div>
+
+      <!-- SESSION DOTS -->
+      <div class="sessions" id="sessionDots"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: LOG + SETTINGS -->
+  <div>
+    <!-- LOG -->
+    <div class="side-card">
+      <h3>完了記録</h3>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num" id="totalSessions">0</div>
+          <div class="stat-lbl">完了セッション</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="totalMinutes">0</div>
+          <div class="stat-lbl">集中した分</div>
+        </div>
+      </div>
+      <ul class="log-list" id="logList" style="margin-top:14px;">
+        <li class="empty-log" id="logEmpty">まだ記録がありません</li>
+      </ul>
+      <div style="margin-top:12px;">
+        <button onclick="clearLog()"
+          style="background:none; border:1px solid var(--border); color:var(--muted);
+                 padding:6px 14px; border-radius:8px; font-size:0.78rem; cursor:pointer;
+                 font-family:inherit;">
+          記録をクリア
+        </button>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="side-card" style="margin-top:16px;">
+      <h3>設定（分）</h3>
+      <div class="settings-grid">
+        <div class="setting-row">
+          <label>集中時間</label>
+          <input type="number" id="setWork" value="25" min="1" max="60" onchange="applySettings()">
+        </div>
+        <div class="setting-row">
+          <label>短い休憩</label>
+          <input type="number" id="setBreak" value="5" min="1" max="30" onchange="applySettings()">
+        </div>
+        <div class="setting-row">
+          <label>長い休憩</label>
+          <input type="number" id="setLong" value="15" min="1" max="60" onchange="applySettings()">
+        </div>
+        <div class="setting-row">
+          <label>長い休憩まで</label>
+          <input type="number" id="setSessions" value="4" min="2" max="8" onchange="applySettings()">
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label style="font-size:0.82rem; display:flex; align-items:center; gap:8px; cursor:pointer; color:var(--muted);">
+          <input type="checkbox" id="notifCheck" onchange="requestNotif()"> デスクトップ通知
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CIRCUMFERENCE = 2 * Math.PI * 90; // 565.49
+
+let mode = "work";
+let totalSeconds = 25 * 60;
+let remaining = totalSeconds;
+let timer = null;
+let running = false;
+let completedSessions = 0;
+let sessionsBeforeLong = 4;
+let log = [];
+
+// settings
+let settings = { work: 25, break: 5, long: 15, sessions: 4 };
+
+function setMode(m) {
+  if (running) { stopTimer(); }
+  mode = m;
+  document.getElementById("btnWork").classList.toggle("active", m === "work");
+  document.getElementById("btnBreak").classList.toggle("active", m === "break");
+  document.getElementById("btnLong").classList.toggle("active", m === "long");
+  const labels = { work: "集中時間", break: "短い休憩", long: "長い休憩" };
+  const colors = { work: "#ef4444", break: "#16a34a", long: "#0891b2" };
+  document.getElementById("modeLabel").textContent = labels[m];
+  document.getElementById("ringFg").style.stroke = colors[m];
+  totalSeconds = settings[m] * 60;
+  remaining = totalSeconds;
+  updateDisplay();
+  resetBtn();
+}
+
+function toggleTimer() {
+  if (running) { stopTimer(); }
+  else { startTimer(); }
+}
+
+function startTimer() {
+  running = true;
+  document.getElementById("startBtn").textContent = "⏸ 一時停止";
+  timer = setInterval(tick, 1000);
+}
+
+function stopTimer() {
+  running = false;
+  clearInterval(timer);
+  document.getElementById("startBtn").textContent = "▶ 再開";
+}
+
+function resetTimer() {
+  stopTimer();
+  remaining = totalSeconds;
+  updateDisplay();
+  resetBtn();
+}
+
+function resetBtn() {
+  document.getElementById("startBtn").textContent = "▶ スタート";
+}
+
+function tick() {
+  remaining--;
+  updateDisplay();
+  if (remaining <= 0) {
+    clearInterval(timer);
+    running = false;
+    onComplete();
+  }
+}
+
+function onComplete() {
+  const task = document.getElementById("taskName").value.trim();
+  const isWork = mode === "work";
+  if (isWork) {
+    completedSessions++;
+    log.unshift({
+      type: "work",
+      label: task || "集中セッション",
+      time: new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })
+    });
+    document.getElementById("totalSessions").textContent = completedSessions;
+    document.getElementById("totalMinutes").textContent = completedSessions * settings.work;
+    renderLog();
+    renderDots();
+    notify("集中タイム終了！", task ? `「${task}」お疲れさまでした` : "お疲れさまでした！");
+    // auto next
+    if (completedSessions % settings.sessions === 0) {
+      setMode("long");
+    } else {
+      setMode("break");
+    }
+  } else {
+    notify("休憩終了！", "次の集中タイムを始めましょう");
+    setMode("work");
+  }
+}
+
+function updateDisplay() {
+  const m = String(Math.floor(remaining / 60)).padStart(2, "0");
+  const s = String(remaining % 60).padStart(2, "0");
+  document.getElementById("timeDisplay").textContent = `${m}:${s}`;
+  const progress = 1 - remaining / totalSeconds;
+  const offset = CIRCUMFERENCE * (1 - progress);
+  document.getElementById("ringFg").style.strokeDashoffset = offset;
+  // title
+  document.title = `${m}:${s} — ${mode === "work" ? "集中中" : "休憩中"}`;
+}
+
+function renderDots() {
+  const n = settings.sessions;
+  let html = "";
+  for (let i = 0; i < n; i++) {
+    const done = (completedSessions % n) > i || (completedSessions > 0 && completedSessions % n === 0);
+    html += `<div class="session-dot${done ? " done" : ""}"></div>`;
+  }
+  document.getElementById("sessionDots").innerHTML = html;
+}
+
+function renderLog() {
+  const list = document.getElementById("logList");
+  const empty = document.getElementById("logEmpty");
+  if (log.length === 0) {
+    empty.style.display = "block";
+    list.innerHTML = '<li class="empty-log" id="logEmpty">まだ記録がありません</li>';
+    return;
+  }
+  list.innerHTML = log.slice(0, 15).map(entry => `
+    <li class="log-item">
+      <div class="log-dot ${entry.type}"></div>
+      <span>${entry.label}</span>
+      <span class="log-time">${entry.time}</span>
+    </li>`).join("");
+}
+
+function clearLog() {
+  log = [];
+  completedSessions = 0;
+  document.getElementById("totalSessions").textContent = 0;
+  document.getElementById("totalMinutes").textContent = 0;
+  renderLog();
+  renderDots();
+}
+
+function applySettings() {
+  settings.work     = parseInt(document.getElementById("setWork").value)  || 25;
+  settings.break    = parseInt(document.getElementById("setBreak").value) || 5;
+  settings.long     = parseInt(document.getElementById("setLong").value)  || 15;
+  settings.sessions = parseInt(document.getElementById("setSessions").value) || 4;
+  setMode(mode);
+}
+
+function requestNotif() {
+  if (document.getElementById("notifCheck").checked) {
+    if (Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }
+}
+
+function notify(title, body) {
+  if (document.getElementById("notifCheck").checked &&
+      Notification.permission === "granted") {
+    new Notification(title, { body, icon: "../favicon.ico" });
+  }
+}
+
+// init
+updateDisplay();
+renderDots();
+renderLog();
+</script>
+</body>
+</html>

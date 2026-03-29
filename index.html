@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>web-automation-toolkit</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --secondary: #7c3aed;
+      --accent: #0891b2;
+      --success: #16a34a;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+      color: white;
+      padding: 40px 24px 32px;
+      text-align: center;
+    }
+    header h1 { font-size: 1.9rem; margin-bottom: 6px; letter-spacing: 0.02em; }
+    header p { font-size: 0.95rem; opacity: 0.8; }
+    .header-meta {
+      display: flex; justify-content: center; gap: 20px;
+      margin-top: 18px; flex-wrap: wrap;
+    }
+    .header-meta span {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 0.78rem;
+    }
+
+    /* SEARCH */
+    .search-wrap {
+      max-width: 520px;
+      margin: -20px auto 0;
+      padding: 0 20px;
+      position: relative;
+      z-index: 10;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 14px 18px 14px 44px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      font-size: 0.95rem;
+      font-family: inherit;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-wrap input:focus { border-color: var(--primary); }
+    .search-icon {
+      position: absolute; left: 34px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted); font-size: 1rem; pointer-events: none;
+    }
+
+    /* LAYOUT */
+    .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
+
+    /* CATEGORY LABEL */
+    .cat-label {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted);
+      margin: 36px 0 14px;
+    }
+
+    /* TOOL GRID */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .tool-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      transition: box-shadow 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .tool-card:hover {
+      box-shadow: 0 6px 20px rgba(37,99,235,0.12);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .tool-card.disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .tool-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.35rem; flex-shrink: 0;
+    }
+    .tool-info h3 { font-size: 0.95rem; margin-bottom: 4px; font-weight: 600; }
+    .tool-info p  { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    .tool-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .tool-tag {
+      font-size: 0.68rem; padding: 2px 8px; border-radius: 4px;
+      background: #eff6ff; color: #1d4ed8;
+    }
+    .tool-tag.new { background: #ecfdf5; color: #15803d; font-weight: 700; }
+    .tool-tag.soon { background: #fefce8; color: #854d0e; }
+
+    /* STATS BAR */
+    .stats {
+      display: flex; gap: 24px; flex-wrap: wrap;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 24px;
+      margin-bottom: 32px;
+    }
+    .stat-item { display: flex; flex-direction: column; }
+    .stat-num { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    .stat-lbl { font-size: 0.75rem; color: var(--muted); }
+
+    /* NO RESULTS */
+    #noResults {
+      display: none;
+      text-align: center; padding: 48px 0;
+      color: var(--muted);
+    }
+
+    /* FOOTER */
+    footer {
+      background: #1e293b; color: #94a3b8;
+      text-align: center; padding: 20px;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.4rem; }
+      .tool-grid { grid-template-columns: 1fr; }
+      .stats { gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>web-automation-toolkit</h1>
+  <p>情報分析・HTML作成・業務自動化のためのツールキット</p>
+  <div class="header-meta">
+    <span>D:\web-automation-toolkit</span>
+    <span id="dateLabel"></span>
+  </div>
+</header>
+
+<div class="search-wrap">
+  <span class="search-icon">🔍</span>
+  <input type="text" id="searchInput" placeholder="ツールを検索..." autocomplete="off">
+</div>
+
+<div class="container">
+
+  <div class="stats">
+    <div class="stat-item">
+      <span class="stat-num" id="totalTools">0</span>
+      <span class="stat-lbl">ツール数</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="newTools">0</span>
+      <span class="stat-lbl">新着</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="catCount">0</span>
+      <span class="stat-lbl">カテゴリ</span>
+    </div>
+  </div>
+
+  <div id="noResults">
+    <p style="font-size:2rem;">🔍</p>
+    <p style="margin-top:8px;">「<span id="noResultsQuery"></span>」に一致するツールは見つかりませんでした</p>
+  </div>
+
+  <div id="toolsContainer"></div>
+
+</div>
+
+<footer>
+  <p>web-automation-toolkit &nbsp;|&nbsp; D:\web-automation-toolkit\index.html</p>
+</footer>
+
+<script>
+  // ===== ツール定義 =====
+  const tools = [
+    {
+      category: "フリーランス支援",
+      items: [
+        {
+          title: "フリーランス案件分析",
+          desc: "AnotherWorks / CrowdWorks / ココナラ の初心者向け案件比較・分析レポート",
+          icon: "📊", iconBg: "linear-gradient(135deg,#1e3a8a,#7c3aed)",
+          href: "freelance-beginner-analysis.html",
+          tags: ["分析", "フリーランス"], isNew: true
+        },
+        {
+          title: "ココナラ出品テンプレート",
+          desc: "データ入力・リサーチサービスのすぐ使える出品文・料金設定・FAQ テンプレート",
+          icon: "🛒", iconBg: "linear-gradient(135deg,#7c3aed,#db2777)",
+          href: "coconala-listing.html",
+          tags: ["ококонала", "テンプレート"], isNew: true
+        }
+      ]
+    },
+    {
+      category: "テキスト加工",
+      items: [
+        {
+          title: "テキストツール",
+          desc: "文字数カウント・改行整形・全角半角変換・重複行削除など日常的なテキスト処理をまとめて",
+          icon: "✏️", iconBg: "linear-gradient(135deg,#059669,#0891b2)",
+          href: "tools/text-tools.html",
+          tags: ["文字数", "整形", "変換"], isNew: true
+        }
+      ]
+    },
+    {
+      category: "業務効率化",
+      items: [
+        {
+          title: "作業タイマー (ポモドーロ)",
+          desc: "25分集中＋5分休憩のポモドーロタイマー。タスクメモ・完了記録付き",
+          icon: "⏱️", iconBg: "linear-gradient(135deg,#f59e0b,#ef4444)",
+          href: "tools/task-timer.html",
+          tags: ["タイマー", "ポモドーロ"], isNew: true
+        },
+        {
+          title: "セットアップスクリプト",
+          desc: "このツールキットをDドライブへ再セットアップ。エラー自動対処・デスクトップアイコン作成",
+          icon: "⚙️", iconBg: "linear-gradient(135deg,#475569,#1e293b)",
+          href: "setup-d-drive.ps1",
+          tags: ["セットアップ", "Windows"]
+        }
+      ]
+    },
+    {
+      category: "近日追加予定",
+      items: [
+        {
+          title: "Excelデータ整形ツール",
+          desc: "CSVをブラウザ上で読み込み、フィルタリング・並び替え・重複削除が可能",
+          icon: "📋", iconBg: "linear-gradient(135deg,#15803d,#16a34a)",
+          href: "#", tags: ["CSV", "Excel"], isSoon: true, disabled: true
+        },
+        {
+          title: "HTMLテンプレートジェネレーター",
+          desc: "入力フォームから自動的に美しいHTMLレポートを生成",
+          icon: "🖥️", iconBg: "linear-gradient(135deg,#0891b2,#6366f1)",
+          href: "#", tags: ["HTML生成"], isSoon: true, disabled: true
+        }
+      ]
+    }
+  ];
+
+  // ===== レンダリング =====
+  function render(filter = "") {
+    const container = document.getElementById("toolsContainer");
+    const noResults = document.getElementById("noResults");
+    const q = filter.toLowerCase().trim();
+    let totalVisible = 0;
+    let html = "";
+
+    tools.forEach(cat => {
+      const matched = cat.items.filter(t =>
+        !q ||
+        t.title.toLowerCase().includes(q) ||
+        t.desc.toLowerCase().includes(q) ||
+        t.tags.some(tag => tag.toLowerCase().includes(q))
+      );
+      if (matched.length === 0) return;
+      totalVisible += matched.length;
+
+      html += `<p class="cat-label">${cat.category}</p><div class="tool-grid">`;
+      matched.forEach(t => {
+        const tags = t.tags.map(tag => `<span class="tool-tag">${tag}</span>`).join("");
+        const newBadge = t.isNew  ? `<span class="tool-tag new">NEW</span>` : "";
+        const soonBadge = t.isSoon ? `<span class="tool-tag soon">近日公開</span>` : "";
+        html += `
+          <a class="tool-card${t.disabled ? " disabled" : ""}" href="${t.href}">
+            <div class="tool-icon" style="background:${t.iconBg}">${t.icon}</div>
+            <div class="tool-info">
+              <h3>${t.title}</h3>
+              <p>${t.desc}</p>
+              <div class="tool-tags">${newBadge}${soonBadge}${tags}</div>
+            </div>
+          </a>`;
+      });
+      html += `</div>`;
+    });
+
+    container.innerHTML = html;
+    if (totalVisible === 0 && q) {
+      noResults.style.display = "block";
+      document.getElementById("noResultsQuery").textContent = filter;
+    } else {
+      noResults.style.display = "none";
+    }
+  }
+
+  // ===== 統計 =====
+  function updateStats() {
+    const total = tools.reduce((s, c) => s + c.items.filter(t => !t.disabled).length, 0);
+    const newCount = tools.reduce((s, c) => s + c.items.filter(t => t.isNew).length, 0);
+    document.getElementById("totalTools").textContent = total;
+    document.getElementById("newTools").textContent = newCount;
+    document.getElementById("catCount").textContent = tools.filter(c => !c.items.every(i => i.disabled)).length;
+  }
+
+  // ===== 日付 =====
+  const now = new Date();
+  document.getElementById("dateLabel").textContent =
+    `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  // ===== 検索 =====
+  document.getElementById("searchInput").addEventListener("input", e => {
+    render(e.target.value);
+  });
+
+  render();
+  updateStats();
+</script>
+</body>
+</html>
